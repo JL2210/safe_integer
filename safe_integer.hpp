@@ -36,11 +36,32 @@ public:
     static constexpr I max = std::numeric_limits<I>::max();
     static constexpr I min = std::numeric_limits<I>::min();
 
-    safe_int(I i) : val { i } { };
+    safe_int(I i) : val { i } { }
 
-    operator I() const { return val; }
+    // allow assigning compatible types
+    template<typename N,
+             typename std::enable_if<
+                      std::is_assignable<N, I>::value, bool>::type = true>
+    safe_int(N n = {})
+          noexcept(std::is_nothrow_assignable<I, N>::value)
+        : val { n }
 
-    safe_int &operator=(I v)
+
+    template<typename N,
+             typename std::enable_if<
+                      std::is_assignable<N, I>::value, bool>::type = true>
+    safe_int(safe_int<N> n)
+          noexcept(std::is_nothrow_assignable<I, N>::value)
+        : val { n.value() }
+
+    // operator overloads for other types
+    // TODO: Implement
+
+    // access operators
+    explicit operator I() const noexcept { return val; }
+    I value() const noexcept { return val; }
+
+    safe_int& operator=(I v)
     {
         val = v;
         return *this;
@@ -59,7 +80,7 @@ public:
         return safe_int(-val);
     }
 
-    safe_int &operator++()
+    safe_int& operator++()
     {
         if(val == max)
             throw std::overflow_error("");
@@ -69,7 +90,7 @@ public:
         return *this;
     }
 
-    safe_int &operator--()
+    safe_int& operator--()
     {
         if(val == min)
             throw std::underflow_error("");
@@ -95,7 +116,7 @@ public:
         return safe_int(val--);
     }
 
-    safe_int &operator+=(I rhs)
+    safe_int& operator+=(I rhs)
     {
         if( rhs > 0 && val > max - rhs )
             throw std::overflow_error("");
@@ -106,7 +127,7 @@ public:
         return *this;
     }
 
-    safe_int &operator-=(I rhs)
+    safe_int& operator-=(I rhs)
     {
         if( val >= 0 && rhs < -max )
             throw std::overflow_error("");
@@ -120,7 +141,7 @@ public:
         return *this;
     }
 
-    safe_int &operator*=(I rhs)
+    safe_int& operator*=(I rhs)
     {
         if(val > 0)
         {
@@ -144,7 +165,7 @@ public:
         return *this;
     }
 
-    safe_int &operator/=(I rhs)
+    safe_int& operator/=(I rhs)
     {
         if((val < -max || rhs < -max) &&
            (val == -1 || rhs == -1))
@@ -159,7 +180,7 @@ public:
         return *this;
     }
 
-    safe_int &operator%=(I rhs)
+    safe_int& operator%=(I rhs)
     {
         if(rhs == 0)
             throw std::domain_error("");
@@ -193,54 +214,54 @@ public:
         return safe_int(val) %= rhs;
     }
 
-    safe_int &operator+=(safe_int rhs)
+    safe_int& operator+=(safe_int rhs)
     {
-        return *this += static_cast<I>(rhs);
+        return *this += rhs.value();
     }
 
-    safe_int &operator-=(safe_int rhs)
+    safe_int& operator-=(safe_int rhs)
     {
-        return *this -= static_cast<I>(rhs);
+        return *this -= rhs.value();
     }
 
-    safe_int &operator*=(safe_int rhs)
+    safe_int& operator*=(safe_int rhs)
     {
-        return *this *= static_cast<I>(rhs);
+        return *this *= rhs.value();
     }
 
-    safe_int &operator/=(safe_int rhs)
+    safe_int& operator/=(safe_int rhs)
     {
-        return *this /= static_cast<I>(rhs);
+        return *this /= rhs.value();
     }
 
-    safe_int &operator%=(safe_int rhs)
+    safe_int& operator%=(safe_int rhs)
     {
-        return *this %= static_cast<I>(rhs);
+        return *this %= rhs.value();
     }
 
     safe_int operator+(safe_int rhs)
     {
-        return safe_int(val) += static_cast<I>(rhs);
+        return safe_int(val) += rhs.value();
     }
 
     safe_int operator-(safe_int rhs)
     {
-        return safe_int(val) -= static_cast<I>(rhs);
+        return safe_int(val) -= rhs.value();
     }
 
     safe_int operator*(safe_int rhs)
     {
-        return safe_int(val) *= static_cast<I>(rhs);
+        return safe_int(val) *= rhs.value();
     }
 
     safe_int operator/(safe_int rhs)
     {
-        return safe_int(val) /= static_cast<I>(rhs);
+        return safe_int(val) /= rhs.value();
     }
 
     safe_int operator%(safe_int rhs)
     {
-        return safe_int(val) %= static_cast<I>(rhs);
+        return safe_int(val) %= rhs.value();
     }
 };
 
